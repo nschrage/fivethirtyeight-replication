@@ -1,0 +1,88 @@
+---
+title: "fivethirtyeight replication"
+author: "Niel Schrage"
+date: "4/10/2019"
+output: html_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# loaded necessary libraries 
+
+library(tidyverse)
+library(fivethirtyeight)
+library(ggthemes)
+
+# loaded congress age data
+
+data("congress_age")
+```
+
+```{r data, echo = FALSE}
+incumbent <- congress_age %>% 
+  
+  # filtered out incumbents, so just new members were displayed
+  
+  filter(incumbent == F) %>%
+  
+  # mutated the data so that the correct start year was shown for each member
+  
+  mutate(year = congress*2 + 1787) %>% 
+  
+  # filtered by party
+  
+  filter(party %in% c("D", "R")) %>% 
+  
+  # grouped by party and year
+  
+  group_by(year, party) %>% 
+  
+  # calculated the average age
+  
+  summarize(avg_age = mean(age)) 
+
+```
+
+```{r graphic, echo = FALSE}
+incumbent %>%   
+
+  # set up plot, with x as year, y as avg age, and color as party
+  
+  ggplot(aes(x = year, y = avg_age, color = party)) + 
+  
+  # put a line graph on the plot, and turned the legend off
+    
+  geom_line(show.legend = FALSE) + 
+  
+  # expanded the limits to fit data set
+    
+  expand_limits(y = 40) + 
+  
+  # scaled x axis breaks
+    
+  scale_x_continuous(breaks = seq(1950, 2010, by = 10), label = c("1950", "'60", "'70", "'80", "'90", "2000", "'10")) + 
+    
+  # scaled y axis breaks
+  
+  scale_y_continuous(breaks = seq(40, 60, by = 5), label = c("40", "45", "50", "55", "60 yrs"))+
+  
+  # added title, subtitle, and caption
+    
+  labs(title = "Average Age of New Members of Congress", 
+       subtitle = "At start of term, 1949-2013", 
+       caption = "Source: fivethirtyeight package") + 
+  
+  # added annotation for republicans and democrats  
+  
+  annotate(geom = "text", x = 1960, y = 50, label = "Republicans", color = "red", size = 5) +
+  annotate(geom = "text", x = 1990, y = 50, label = "Democrats", color = "blue", size = 5) + 
+    
+  # manually set line color
+  
+  scale_colour_manual(values = c("blue", "red")) +
+  
+  # applied fivethirtyeight theme  
+  
+  theme_fivethirtyeight() 
+
+```
